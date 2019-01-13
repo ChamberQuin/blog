@@ -1,7 +1,8 @@
 * 知识就是力量
     * [各类知识相关文章](knowledge/)
-        * [URL中的字符转义](knowledge/url-encoding-characters.md)
+        * [URL中的字符转义(转)](knowledge/url-encoding-characters.md)
         * [LVS原理及部署(转)](knowledge/lvs.md)
+        * [测试之道](knowledge/how-to-test.md)
     * [JVM](jvm/)
         * [JVM基础](jvm/jvm_basic.md)
         * [Sychronized是怎么工作的?(转)](jvm/synchronized.md)
