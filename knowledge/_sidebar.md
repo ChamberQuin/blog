@@ -1,1 +1,1 @@
-* [URL Encoding Characters](knowledge/url-encoding-characters.md)
+* [URL Encoding Characters](url-encoding-characters.md)
