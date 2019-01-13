@@ -1,2 +1,14 @@
 * 知识就是力量
     * [各类知识相关文章](knowledge/)
+        * [URL中的字符转义](knowledge/url-encoding-characters.md)
+        * [LVS原理及部署(转)](knowledge/lvs.md)
+    * [JVM](jvm/)
+        * [JVM基础](jvm/jvm_basic.md)
+        * [Sychronized是怎么工作的?(转)](jvm/synchronized.md)
+        * [Java字节码](jvm/bytecode.md)
+        * [Java内存模型](jvm/jmm.md)
+* 真相只有一个
+    * [问题排查](troubleshooting/)
+        * [HTTP调用偶发耗时10s](troubleshooting/http_idle.md)
+        * [Probe速度慢分析](troubleshooting/probe_slow.md)
+        * [BufferedReader为什么速度快](troubleshooting/buffered_reader.md)
