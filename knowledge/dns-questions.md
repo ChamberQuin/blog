@@ -1,6 +1,6 @@
 [toc]
 
-# DNS
+# DNS Questions
 
 ## What's IP packet size
 
