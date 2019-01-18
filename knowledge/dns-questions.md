@@ -31,6 +31,7 @@ Datagram header = typical internet header + margins for higher level protocols =
 ```
 
 ## Why UDP 512 bytes
+
 ![](media/15478039394165.jpg)
 
 Internet大多数网络接口`MTU < 512`，若`size > MTU`可能导致IP分片。由于只有1片带端口号信息，其他分片可能被防火墙拒绝导致通信障碍，为了保证信息通畅无阻需要
