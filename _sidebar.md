@@ -4,7 +4,7 @@
         * [LVS原理及部署(转)](knowledge/lvs.md)
         * [测试之道](knowledge/how-to-test.md)
     * [Network](network/)
-        * [DNS的一些迷思](network/dns-questions.md)
+        * [DNS](network/dns-questions.md)
     * [JVM](jvm/)
         * [JVM基础](jvm/jvm-basic.md)
         * [Sychronized是怎么工作的?(转)](jvm/synchronized.md)

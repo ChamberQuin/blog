@@ -1,8 +1,7 @@
 [toc]
-
 # DNS
 
-## DNS基础
+# DNS基础
 
 DNS是提供主机名字和IP地址转换功能的分布式数据库，具有层次结构，每个结点由[1,63]个字符标识。
 
@@ -53,25 +52,171 @@ OtherNameServer -> NameServer: 域名对应的IP
 @enduml
 ```
 
-使用高速缓存。
+在标准的Unix实现中，高速缓存是由域名服务器而不是由域名解析器维护，任何一个使用名字服务器的应用均可获得高速缓存，在该站点使用这个名字服务器的任何其他主机也能共享服务器的高速缓存。
 
-## DNS协议报文
+# DNS协议报文
 
-![](media/15478766858922.jpg)
+## 报文格式
 
+1. 报文的总体格式
 
+	![](media/15478766858922.jpg)
 
+	* opcode 通常值为0（标准查询），其他值为1（反向查询）和2（服务器状态请求
+	* TC是1 bit字段，表示“可截断的(truncated)”。使用UDP时，表示当应答的总长度超过512字节时，只返回前512个字节，剩余部分放到下一片
+	* RD是1 bit字段表示“期望递归（recursion desired）”。该比特能在一个查询中设置，并在响应中返回。
+		* 为1，名字服务器必须处理这个查询，也称为一个递归查询
+		* 为0，且被请求的名字服务器没有一个授权回答，它就返回一个能解答该查询的其他名字服务器列表，这称为迭代查询
+	
 
-## IPv4 vs. IPv6
+2. 查询问题的格式
+	
+	![](media/15478812135938.jpg)
 
-## Dig分析解析结果
+	* 查询名
+
+		![](media/15478819017548.jpg)
+
+	* DNS问题和响应的类型值和查询类型值
+		
+		![](media/15478819496395.jpg)
+	
+		```
+		➜  ~ host -t a weibo.com
+		weibo.com has address 123.125.104.26
+		weibo.com has address 123.125.104.197
+		➜  ~ host -t cname weibo.com
+		weibo.com has no CNAME record
+		➜  ~ host -t ptr weibo.com
+		weibo.com has no PTR record		```
+
+3. 资源记录的格式
+
+	![](media/15478820974599.jpg)
+
+	DNS报文中最后的三个字段，回答字段、授权字段和附加信息字段，均采用一种称为资源记录RR（Resource Record）的相同格式。
+	* 资源记录通常的生存时间值为2天
+
+4. 实际传输的报文
+
+	![](media/15478829604777.jpg)
+
+## 指针查询
+
+给定一个IP地址，返回与该地址对应的域名。
+
+以 `edu.noao.tuc.sun` 为例，当它加入Internet并获得DNS域名空间的授权，则它们也获得了对应IP地址的in-addr.arpa域名空间的授权，但是DNS名字是由树的底部逐步向上书写的。这意味着对于IP地址为 `140.252.13.33` 的sun主机，它的DNS名字为 `33.13.252.140.in-addr.arpa` 。
+从应用的角度上看，正常的名字解析器函数 `gethostbyaddr` 将接收一个IP地址并返回对应主机的有关信息。反转这些字节和添加in-addr.arpa域均由该函数自动完成。
+
+抓包看看实际情况
+
+```
+➜  ~ host 140.252.13.34
+34.13.252.140.in-addr.arpa domain name pointer pipen14.tuc.noao.edu.
+```
+
+![](media/15478901245593.jpg)
+
+IP `140.252.13.34` 已经由客户端转换为 `34.13.252.140.in-addr.arpa` 后再发起请求。
 
 ## Wireshark分析DNS协议
 
-## 一些有趣的问题
+1. 抓包
 
+	tcpdump指定端口53过滤出dns相关包，dig先后用udp（默认）、tcp分别发起dns请求，命令及返回如下
 
-### What's IP packet size
+	```shell
+	➜  ~ tcpdump -i any port 53 -w dns.cap	
+	➜  ~ dig weibo.com	
+	; <<>> DiG 9.10.6 <<>> weibo.com
+	;; global options: +cmd
+	;; Got answer:
+	;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 65469
+	;; flags: qr rd ra ad; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 0
+	
+	;; QUESTION SECTION:
+	;weibo.com.			IN	A
+	
+	;; ANSWER SECTION:
+	weibo.com.		60	IN	A	123.125.104.26
+	weibo.com.		60	IN	A	123.125.104.197
+	
+	;; Query time: 3 msec
+	;; SERVER: 172.16.0.1#53(172.16.0.1)
+	;; WHEN: Sat Jan 19 15:08:28 CST 2019
+	;; MSG SIZE  rcvd: 59
+	
+	➜  ~ dig weibo.com +tcp	
+	; <<>> DiG 9.10.6 <<>> weibo.com +tcp
+	;; global options: +cmd
+	;; Got answer:
+	;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 55956
+	;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 0
+	
+	;; QUESTION SECTION:
+	;weibo.com.			IN	A
+	
+	;; ANSWER SECTION:
+	weibo.com.		60	IN	A	123.125.104.26
+	weibo.com.		60	IN	A	123.125.104.197
+	
+	;; Query time: 11 msec
+	;; SERVER: 172.16.0.1#53(172.16.0.1)
+	;; WHEN: Sat Jan 19 15:08:53 CST 2019
+	;; MSG SIZE  rcvd: 59
+
+	```
+
+2. 分析
+
+	wireshark打开`.cap`文件，先用`udp stream eq 0`看基于udp的dns包
+	
+	* No.1 DNS query based on udp
+
+		![](media/15478852130523.jpg)
+		
+		* `Opcode : 0`标准查询
+		* `Truncated: Message is not truncated` client端不支持分片，请server端返回完整数据
+		* `Recursion desired: Do query recursively` 如果域名解析服务器没有IP地址，递归查询后把结果告诉Client
+		* `Non-authenticated data: Unacceptable` 只接受授权服务器的回复
+		* `Questions: 1` 问题部分只有1个
+		* `weibo.com: type A, class IN` 希望获得IP地址
+		* `UDP payload size: 4096` 神秘信息，TBC
+		* `EDNS0 version: 0` 神秘信息，TBC
+
+	* No.1 DNS response based on udp
+	
+		![](media/15478854028076.jpg)
+
+		* `Answer RRs: 2` 有两个答案部分
+		* `Time to live: 60` 有效期60（??? 单位s TBC）
+	
+	再用`tcp stream eq 0`看基于tcp的dns包
+
+	* No.2 DNS query based on tcp
+
+		![](media/15478857102726.jpg)
+
+	* No.2 DNS response based on tcp
+
+		![](media/15478859841573.jpg)
+
+## 总结
+
+![](media/15478909927121.jpg)
+
+# 用UDP还是TCP
+
+等等，除了多了握手挥手过程，DNS的请求和返回没什么区别，为什么要同时支持udp和tcp呢？
+
+此外，我们知道IP包大小受限于MTU，UDP包小于512 bytes（原因见后文），当返回响应中的TC（删减标志）比特被设置为1时，意味着响应的长度超过了512 bytes，且仅返回前512 bytes。在遇到这种情况时，域名解析器通常使用TCP重发原来的查询请求，它将允许返回的响应超过512 bytes。
+此外，区域传送将使用TCP，因为这里传送的数据远比一个查询或响应多得多。
+
+# IPv4 vs. IPv6
+	
+# 一些有趣的问题
+
+## What's IP packet size
 
 RFC 791: maximum packet 576 octets.
 RFC 1123: Limited by UDP, DNS record type size < 512 bytes, so resolvers and name servers should implement TCP services as a backup.
@@ -99,7 +244,7 @@ Datagram = Data block + Datagram header = 512 + 64 = 576 octets
 Datagram header = typical internet header + margins for higher level protocols = 20 + 44 = 64
 ```
 
-### Why UDP 512 bytes
+## Why UDP 512 bytes
 
 ![](media/15478039394165.jpg)
 
@@ -121,7 +266,7 @@ DNS报文 < MTU - UDP - IP = 512 - 8 - 20 = 484
 DNS报文 < 512
 ```
 
-### Why 13 dns root domains
+## Why 13 dns root domains
 
 Nameserver starts up getting a list of root nameserver IP addresses to validate or update the built-in list.
 
@@ -171,10 +316,10 @@ Usually m = n, so the equation becomes
 ```
 
 
-## Reference
+# Reference
 
-https://ripe67.ripe.net/presentations/112-2013-10-16-dns-protocol.pdf
-https://www.ietf.org/rfc/rfc1034.txt DNS概念和功能
-https://www.ietf.org/rfc/rfc1035.txt DNS规范和实现
+* https://ripe67.ripe.net/presentations/112-2013-10-16-dns-protocol.pdf
+* https://www.ietf.org/rfc/rfc1034.txt DNS概念和功能
+* https://www.ietf.org/rfc/rfc1035.txt DNS规范和实现
 
 
