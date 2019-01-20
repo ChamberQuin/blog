@@ -1,5 +1,5 @@
 [toc]
-# DNS
+# DNS 域名系统
 
 # DNS基础
 
