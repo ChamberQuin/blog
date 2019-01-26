@@ -114,11 +114,6 @@
 
 ![](media/15479737919819.jpg)
 
-
-
-
-
-
 # ifconfig和netstat分析IP
 
 
