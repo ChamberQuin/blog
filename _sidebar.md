@@ -11,7 +11,7 @@
         * [DNS 域名系统](network/dns-questions.md)
         * [ARP和RARP 地址解析协议](network/arp-and-rarp.md)
         * [ICMP Internet控制协议](network/icmp-proto.md)
-        * [Ping程序](network/ping.md)
+        * [Ping和Traceroute介绍](network/ping-and-traceroute.md)
     * [JVM](jvm/)
         * [JVM基础](jvm/jvm-basic.md)
         * [Sychronized是怎么工作的?(转)](jvm/synchronized.md)
@@ -24,3 +24,5 @@
         * [HTTPS调用偶发耗时10s](troubleshooting/https-idle.md)
         * [Probe速度慢分析](troubleshooting/probe-slow.md)
         * [BufferedReader为什么速度快](troubleshooting/buffered-reader.md)
+
+
