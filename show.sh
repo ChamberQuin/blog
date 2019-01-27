@@ -1,2 +1,4 @@
 #!/bin/bash
-ps aux | grep SimpleHTTPServer | grep -v grep
+source $(pwd)/.env
+
+ps aux | grep "SimpleHTTPServer $PORT" | grep -v grep
