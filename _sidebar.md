@@ -5,6 +5,7 @@
         * [测试之道](knowledge/how-to-test.md)
         * [DASH调研](knowledge/dash.md)
         * [Mock Server](knowledge/mock-server.md)
+        * [UML](knowledge/uml_temp.md)
     * [Network](network/)
         * [Network Basic](network/network-basic.md)
         * [IP 网际协议](network/ip.md)
