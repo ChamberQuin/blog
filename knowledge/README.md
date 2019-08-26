@@ -4,3 +4,4 @@
 * [DASH调研](knowledge/dash.md): DASH调研
 * [Mock Server](knowledge/mock-server.md): Mock Server
 * [UML的正确姿势](knowledge/uml.md): UML的正确姿势
+* [杂项](knowledge/misc.md): 杂项

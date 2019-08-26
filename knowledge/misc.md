@@ -1,5 +1,7 @@
 [toc]
 
+# 杂项
+
 # 高并发
 
 ## 消息队列
@@ -20,16 +22,18 @@
 
 3. 对比
 	
-	|   | 单机吞吐量 | topic数量对吞吐量的影响 | 时效性 | 可用性 | 可靠性 | 功能支持 | 社区活跃度 |
-	| --- | --- | --- | --- | --- | --- | --- | --- |
-	| Kafka | 10w | 几百topics时，吞吐量大幅度降低 | ms以内 | 非常高（分布式，多副本，少数及其宕机不丢失数据） | 优化参数后能不丢失 | 简单的MQ功能，主要用于大数据领域的实时计算及日志采集 | 极高 |
-	| ActiveMQ | 1w |  | ms | 高（主从） | 较低概率丢失 | 功能极其完备 | 低 |
-	| RabbitMQ | 1w |   | us | 高（主从） | 基本不丢 | 并发能力强，性能极好，延时很低（基于erlang） | 较高 |
-	| RocketMQ | 10w | 几千topics时，吞吐量小幅度降低 | ms | 非常高（分布式） | 优化参数后能不丢失 | 功能完善，扩展性好 | 一般 |
-	| MCQ |  |  |  |  |  |  |
-	| Trigger |  |  |  |  |  |  |
+|   | 单机吞吐量 | topic数量对吞吐量的影响 | 时效性 | 可用性 | 可靠性 | 功能支持 | 社区活跃度 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Kafka | 10w | 几百topics时，吞吐量大幅度降低 | ms以内 | 非常高（分布式，多副本，少数及其宕机不丢失数据） | 优化参数后能不丢失 | 简单的MQ功能，主要用于大数据领域的实时计算及日志采集 | 极高 |
+| ActiveMQ | 1w |  | ms | 高（主从） | 较低概率丢失 | 功能极其完备 | 低 |
+| RabbitMQ | 1w |   | us | 高（主从） | 基本不丢 | 并发能力强，性能极好，延时很低（基于erlang） | 较高 |
+| RocketMQ | 10w | 几千topics时，吞吐量小幅度降低 | ms | 非常高（分布式） | 优化参数后能不丢失 | 功能完善，扩展性好 | 一般 |
+| MCQ |  |  |  |  |  |  |
+| Trigger |  |  |  |  |  |  |
 
 ### 原理及实现
+
+MQ的基本要求是**数据不能多，也不能少**，即保证可用性、幂等性、可靠性。
 
 #### 可用性
 
@@ -59,7 +63,81 @@ RabbitMQ有三种模式：单机、普通集群、镜像集群。
 
 Kafka由多个broker组成，每个broker是一个节点。topic可以划分为多个partition，每个partition可以存放于不同的broker上，每个partition存放一部分数据。
 
-Kafka是**分布式**
+Kafka是**分布式消息队列**，每个节点只存放部分queue数据；RabbitMQ是传统消息队列，每个节点存放完整的queue数据。
+
+Kafka 0.8之前没有HA，任一broker宕机，则落在上面的partition无法读写。Kafka 0.8提供了**replica**方式的HA，所有replica选举1个leader。leader处理生产/消费，也负责同步数据到replica。Kafka会均匀地将replica分散到不同broker，保证容错性。
+
+1. 生产
+
+	生产者写leader，leader落盘，replica主动从leader拉数据，同步后replica给leader发ack，leader收完所有ack后，会返回写成功的 消息给生产者。（据说有其他模式，可以调整）
+	
+2. 消费
+
+	消费者只读leader，而不读replica，可以规避主从一致性问题，降低复杂度。
+	但只有当消息被所有replica都同步成功（即返回ack）时，消息才能被消费。
+
+#### 幂等性
+
+RabbitMQ、RocketMQ、Kafka，都有可能会出现消息重复消费的问题，通常幂等性由consumer保证，而不是MQ。
+
+consumer可以通过**查询-更新**、**唯一性**等保证幂等性。
+
+##### Kafka幂等性
+
+Kafka中，offset表示消息序号，produce消息会增加offset，consume消息时会定时提交已消费消息的offset，下次从offset而不是从头开始消费。
+
+当consumer消费了消息但还没提交offset时就重启了，会导致部分消息重复消费。
+
+#### 可靠性
+
+丢数据可能发生在Producer、MQ、Consumer中。
+
+##### RabbitMQ可靠性
+
+1. Producer -> MQ
+
+	因网络等原因丢失数据，可以通过RabbitMQ提供的事务功能 `channel.txSelect` ，再发送消息。如果消息没被RabbitMQ接收，生产者会收到异常报错，可以回滚事务 `channel.txRollback`，然后重试发送；如果收到了消息，可以提交事务 `channel.txCommit`。
+	
+	但是，RabbitMQ的事务机制会比较耗性能，会**降低吞吐量**。
+	
+	还可以通过开启**confirm**模式，Producer每次写消息都会分配唯一id。如果写入了RabbitMQ，RabbitMQ会回ack；如果没写入RabbitMQ，RabbitMQ会回调Producer的**nack**接口，Producer可以重试。此外，Producer还能结合业务自己维护id状态。
+
+2. MQ
+	
+	RabbitMQ消息先写内存，可以**开启持久化**，在RabbitMQ回复后会自动读之前存的数据。
+	但是，如果消息还没来得及持久化，RabbitMQ就挂了，还是会丢少量数据，但概率较小。
+	
+	设置持久化有两个步骤
+	
+	* 创建queue时设为持久化，则RabbitMQ会持久化queue**元数据**
+	* 消息的 `deliveryMode` 设为2，则Rabbit会持久化消息
+
+3. MQ -> Consumer
+
+	因网络、Consumer异常等原因没消费数据但被RabbitMQ误认为已消费，可以通过RabbitMQ提供的 **ack机制**，即关闭RabbitMQ的自动ack，改为Producer调api显式ack。如果RabbitMQ认为消息没处理完，会将消息分配给其他Consumer。
+	
+综上，可以通过**生产者开启confirm**、**MQ开启持久化**、**Consumer自定义ack**保证可靠性。
+
+##### Kafka可靠性
+
+1. Producer -> MQ
+
+	由于leader只在replica都同步完数据后，才认为写成功，所以不会丢。生产者会无限重试，直到成功。
+	
+2. MQ
+
+	broker宕机后重新选partition的leader时，如果凉了的leader还有数据没同步到replica，会丢数据。
+	
+	参考raft选主的策略，可以设置如下参数避免丢失
+	
+	* `replication.factor > 1` 保证每个partition至少2个副本
+	* `min.insync.replicas > 1` 保证leader至少感知到1个replica还和自己保持联系，确保新老leader接替
+	* `acks=all` 保证消息写入所有replica后才认为写成功
+	* `retries=MAX` 保证写失败时无限重试（？？？有风险吧？？？）
+	
+#### 顺序性
+
+
 
 
 ## 缓存

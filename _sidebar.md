@@ -6,6 +6,7 @@
         * [DASH调研](knowledge/dash.md)
         * [Mock Server](knowledge/mock-server.md)
         * [UML的正确姿势](knowledge/uml.md)
+        * [杂项](knowledge/misc.md)
     * [Network](network/)
         * [Network Basic](network/network-basic.md)
         * [IP 网际协议](network/ip.md)
