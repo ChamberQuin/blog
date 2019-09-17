@@ -6,19 +6,19 @@
 
 ## 消息队列
 
-### 应用
+### 问题、场景和对比
 
-1. 场景（架构、代码）
-
-	* 解耦（推送媒体发布状态；
-	* 异步（多机房备份存储；转码；
-	* 削峰（发博结果；
-
-2. 问题
+1. 问题
 
 	* 增加依赖，降低可用性
 	* 增加组件，提高复杂性
 	* 一致性
+	
+2. 场景（架构、代码）
+
+	* 解耦（推送媒体发布状态；
+	* 异步（多机房备份存储；转码；
+	* 削峰（发博结果；
 
 3. 对比
 	
@@ -31,7 +31,7 @@
 | MCQ |  |  |  |  |  |  |
 | Trigger |  |  |  |  |  |  |
 
-### 原理及实现
+### 机制及实现
 
 MQ的基本要求是**数据不能多，也不能少**，即保证可用性、幂等性、可靠性。
 
@@ -181,6 +181,194 @@ TBC
 问题 + 解决原理 + 实际例子
 
 ## 缓存
+
+### 问题、场景和对比
+
+1. 问题和场景
+
+	引入多级存储，解决IO速度不匹配的问题，实现低延迟、高并发。
+
+2. 引入的新问题
+	
+	* 数据不一致
+	* 可用性强依赖缓存，如缓存穿透引发服务雪崩，缓存本身雪崩等
+	* 缓存并发竞争，如并发写同一个key，但顺序不对等
+
+3. 对比
+	
+	|   | 数据结构 | 集群模式 | 性能 | 线程模型 |
+	| --- | --- | --- | --- | --- |
+	| Redis | string,hash,list,set,sorted set,pub/sub | cluster(v3.x+) | 单核，适用小数据 | 单线程 |
+	| Memcached | string | 调用方同步 | 多核，适用100k以上大数据 | 多线程 |
+
+### Redis原理及实现
+
+#### 线程模型
+
+TBC
+
+> 单线程也效率高的原因
+1. 纯内存操作
+2. 基于非阻塞的IO多路复用
+3. C执行较快
+4. 单线程避免了上下文切换（占比多少？？）
+
+#### 数据类型、存储结构（TBC）、实际应用
+
+1. string
+	* 配置
+2. hash
+	* 字段差异较大的结构化数据（TBC）
+3. list
+	* 分页（为什么不内存分页）
+	* 消息队列
+4. set
+	* 全局集合操作，如自动去重、求交并差集（为什么不内存操作）
+5. sorted set
+	* 延迟队列
+6. pub/sub
+	* 直播推送消息
+
+#### 过期策略
+
+定期删除 + 惰性删除
+
+1. 定期删除
+
+	默认间隔100ms随机抽取检查设置了过期时间的key，过期则删除
+	
+2. 惰性删除
+
+	取key时检查是否过期，过期则删除
+
+#### 内存淘汰
+
+如果没过期，且内存不足以容纳新写入数据时，执行内存淘汰机制
+
+1. noeviction
+
+	不淘汰，内存不足时写报错
+	
+2. allkeys-lru
+
+	键空间中移除最近最少使用的key
+	
+3. allkeys-random
+
+	键空间中移除随机的key
+	
+4. volatile-lru
+
+	设置了过期时间的键空间中，移除最近最少使用的key
+	
+5. volatile-random
+
+	设置了过期时间的键空间中，移除随机的key
+	
+6. volatile-ttl
+
+	设置了过期时间的键空间中，移除最早过期的key
+	
+#### 手写代码
+	
+LinkedHashMap
+
+``` java
+class LRUCache<K, V> extends LinkedHashMap<K, V> {
+    private final int CACHE_SIZE;
+
+    /**
+     * 传递进来最多能缓存多少数据
+     *
+     * @param cacheSize 缓存大小
+     */
+    public LRUCache(int cacheSize) {
+        // true 表示让 linkedHashMap 按照访问顺序来进行排序，最近访问的放在头部，最老访问的放在尾部。
+        super((int) Math.ceil(cacheSize / 0.75) + 1, 0.75f, true);
+        CACHE_SIZE = cacheSize;
+    }
+
+    @Override
+    protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+        // 当 map中的数据量大于指定的缓存个数的时候，就自动删除最老的数据。
+        return size() > CACHE_SIZE;
+    }
+}
+```
+
+### 可用性
+
+通过集群模式提高读吞吐，通过哨兵实现高可用。
+
+#### 主从架构
+
+> redis replication -> 主从架构 -> 读写分离 -> 读水平扩容 -> 高并发
+
+主从机制，一主多从，主写从读（读写分离），写入w级别，读取10w级别，适用读多写少，支持读水平扩容。
+
+1. redis replication机制
+
+	* **异步**同步，slave会周期性确认已复制的数据量（since v2.8+）
+	* 支持多slave复制
+	* 支持从slave复制
+	* slave复制时，不block读操作（依赖旧数据），但复制完成时，需要删除旧数据集并加载新数据集，此时会暂停服务
+	* slave能横向扩容
+
+	建议开启master node持久化，而不是用slave node作热备
+
+	* 避免master宕机重启后数据为空，同步到slave导致slave也空了
+	* 避免主从不一致时，主从切换时丢失数据
+
+	建议备份master
+	
+	* 避免本地文件丢失后，能从备份rdb恢复master，确保启动时有数据
+	* 虽然slave能自动接管master，也可能sentinel还没检测到master failure，master就重启并丢数据，最终导致slave也被清空
+
+2. redis主从复制原理
+
+	``` plantuml
+	@startuml
+	master <- slave: PSYNC
+	note right
+	1. 首次连接: 全量复制
+	2. 重新连接: 部分复制
+	end note
+	master -> master: 生成RDB快照；内存中缓存新收到的写命令
+	master -> slave: 发送RDB
+	slave -> slave: 先写磁盘，再加载到内存
+	master -> slave: 同步内存中缓存的写命令
+	slave -> slave: 先写磁盘，再加载到内存
+	@enduml
+	```
+
+	1. redis主从复制到断点续传
+
+		主从复制时如果断网，支持断点续传（since v2.8）。
+		
+		master会在内存中维护一个`backlog`，master、slvae都保存`replica offset`、`master run id`，`replica offset`保存在`backlog`中。
+		
+		如果断网，slave会让master从上次`replica offset`继续复制，如果没找到该offset，则执行一次`resynchronization`。
+		
+	2. 无磁盘化复制
+	
+		配置`repl-diskless-sync yes`后，master在内存中直接创建RDB后发送给slave，RDB不落盘。
+		
+		```
+		repl-diskless-sync yes
+	
+		# 5s后再开始复制，来等待更多slave重新连接（？？？）
+		repl-diskless-sync-delay 5
+		```
+		
+	3. slave处理过期key
+		
+		slave不主动过期key，只被动等待master过期key、淘汰key后，master模拟del命令同步到slave。
+	
+3. 复制流程
+
+	
+	
+#### 哨兵机制
 
 
 
