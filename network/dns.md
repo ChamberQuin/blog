@@ -4,7 +4,9 @@
 
 # DNS基础
 
-DNS是提供主机名字和IP地址转换功能的分布式数据库，具有层次结构，每个结点由[1,63]个字符标识。
+DNS是为了平衡主机名**易用性、冲突、高负载和延迟**发明的**层次的、基于域的**命名方案，通过提供主机名和IP地址转换功能的**分布式数据库**加以实现。
+
+每个结点由[1,63]个字符标识。
 
 ![](media/15478735104744.jpg)
 
@@ -46,14 +48,42 @@ end
 ``` plantuml
 @startuml
 Client -> NameServer: 请求解析域名
-NameServer -> RootNameServer: 请求解析域名
+NameServer -> RootNameServer: 请求解析域名（选播路由）
 RootNameServer --> NameServer: OtherNameServer地址（名字orIP）
 NameServer -> OtherNameServer: 请求解析域名
 OtherNameServer -> NameServer: 域名对应的IP
 @enduml
 ```
 
+* 递归查询 NS替代Client解析域名，返回完整答案，如 *Client -> NameServer*
+* 迭代查询 NS只返回部分答案，并移动到下一个查询操作，如 *NameServer -> RootNameServer，RootNameServer -> OtherNameServer*
+
 在标准的Unix实现中，高速缓存是由域名服务器而不是由域名解析器维护，任何一个使用名字服务器的应用均可获得高速缓存，在该站点使用这个名字服务器的任何其他主机也能共享服务器的高速缓存。
+
+* 权威记录 查询结果恰好由管理该记录的权威NS提供，总是正确
+* 缓存记录 有可能过时
+
+每个域都有一组与它相关联的**资源记录**，每个资源记录是一个五元组
+
+* Domain Name 指出记录适用于哪个域，通常每个副本保存多个域的信息，每个域有多条记录，因此Domain Name是匹配查询条件的主要关键字。数据库顺序不影响查询。
+* TTL
+* Class 设计为区分不同网络，通常只用**IN**（Internet）
+* Type
+	
+	| 类型 | 含义 | 值 |
+	| --- | --- | --- |
+	| SOA | 本区域的参数 | 主要信息源名称、NS管理员邮件地址、唯一序号、各种标志位和超时值等 |
+	| A | IPv4 | 32bit  |
+	| AAAA | IPv6 | 128bit |
+	| MX | 邮件交换 | 优先级，愿意接受有邮件的域 |
+	| NS | 域名服务器 | 域名服务器名字 |
+	| CNAME | 别名的规范名 | 规范名 |
+	| PTR | 指针 | IP地址别名 |
+	| SPF | 发送者的政策框架 | 文本编码 |
+	| SRV | 把主机标识为域内的一种给定服务 | 提供服务的主机 |
+	| TXT | 文本 | 说明的ASCII文本 |
+		
+* Value
 
 # DNS协议报文
 
@@ -208,7 +238,7 @@ IP `140.252.13.34` 已经由客户端转换为 `34.13.252.140.in-addr.arpa` 后�
 
 # 用UDP还是TCP
 
-等等，除了多了握手挥手过程，DNS的请求和返回没什么区别，为什么要同时支持udp和tcp呢？
+除了多了握手挥手过程，DNS的请求和返回没什么区别，为什么要同时支持udp和tcp呢？
 
 此外，我们知道IP包大小受限于MTU，UDP包小于512 bytes（原因见后文），当返回响应中的TC（删减标志）比特被设置为1时，意味着响应的长度超过了512 bytes，且仅返回前512 bytes。在遇到这种情况时，域名解析器通常使用TCP重发原来的查询请求，它将允许返回的响应超过512 bytes。
 此外，区域传送将使用TCP，因为这里传送的数据远比一个查询或响应多得多。

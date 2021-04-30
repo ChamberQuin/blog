@@ -5,7 +5,7 @@
 * 应用 应用信息 -> 数据 HTTP/TLS/DNS
 * 传输 端 -> 端 TCP/UDP TCP segment
 * 网络 点 -> 点 IP/ICMP IP datagram Router
-* 链路 比特流 数字信号 -> 光电信号 ARP/RARP？ Frame Bridge
+* 链路 比特流 数字信号 -> 光电信号 ARP/RARP Frame Bridge
 
 ![](media/15479609721154.jpg)
 
