@@ -1,5 +1,6 @@
 * [Home](/)
 * [Knowledge](/knowledge/)
 * [Network](/network/)
+* [OS](/os/)
 * [JVM](/jvm/)
 * [Troubleshooting](/troubleshooting/)
