@@ -183,6 +183,7 @@ IpExt:
 	[Sat May  8 12:40:57 2021] nf_conntrack: table full, dropping packet
 	[Sat May  8 12:40:57 2021] nf_conntrack: table full, dropping packet
 	
+	
 	[root@93-44-159-aliyun-core logs]# sysctl -a | grep nf_conn
 	net.netfilter.nf_conntrack_acct = 0
 	net.netfilter.nf_conntrack_buckets = 65536
