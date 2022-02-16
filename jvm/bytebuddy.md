@@ -21,7 +21,6 @@
 * [ ] Skywalking InterceptorInstanceLoader.load()
 * [ ] ByteBuddy SuperMethodCall
 * [ ] JDK Class.forName() // Classloader appointment mechanism
-* [ ] 
 	
 ## 类加载器
 

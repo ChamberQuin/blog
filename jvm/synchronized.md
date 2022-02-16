@@ -1,71 +1,7 @@
 [toc]
 # synchronized
-## 基础知识
-### CAS操作
 
-乐观锁，Compare and Swap。
 
-JNI完成CPU指令的操作：
-
-``` java
-unsafe.compareAndSwapInt(this, valueOffset, expect, update);
-```
-
-CAS有3个操作数，内存值V，旧的预期值A，要修改的新值B。如果A=V，那么把B赋值给V，返回V；如果A！=V，直接返回V。
-
-源码：openjdk\hotspot\src\oscpu\windowsx86\vm\ atomicwindowsx86.inline.hpp
-![](media/15446795588450.jpg)
-
-os::is_MP()  这个是runtime/os.hpp，实际就是返回是否多处理器，源码如下：
-![](media/15446795715281.jpg)
-如上面源代码所示（看第一个int参数即可），LOCK_IF_MP:会根据当前处理器的类型来决定是否为cmpxchg指令添加lock前缀。如果程序是在多处理器上运行，就为cmpxchg指令加上lock前缀（lock cmpxchg）。反之，如果程序是在单处理器上运行，就省略lock前缀（单处理器自身会维护单处理器内的顺序一致性，不需要lock前缀提供的内存屏障效果）。
-
-### 对象头
-
-HotSpot虚拟机中，对象在内存中存储的布局可以分为三块区域：对象头（Header）、实例数据（Instance Data）和对齐填充（Padding）。 
-HotSpot虚拟机的对象头(Object Header)包括两部分信息:
-
-1. Mark Word
-
-	用于存储对象自身的运行时数据， 如哈希码（HashCode）、GC分代年龄、锁状态标志、线程持有的锁、偏向线程ID、偏向时间戳等等.
-2. Klass Pointer
-
-	对象指向它的类的元数据的指针，虚拟机通过这个指针来确定这个对象是哪个类的实例。(数组，对象头中还必须有一块用于记录数组长度的数据，因为虚拟机可以通过普通Java对象的元数据信息确定Java对象的大小，但是从数组的元数据中无法确定数组的大小。 ) 
-
-32位的HotSpot虚拟机对象头存储结构
-
-![](media/15446792251867.jpg)
-
-为了证实上图的正确性，这里我们看openJDK--》hotspot源码markOop.hpp，虚拟机对象头存储结构
-
-![](media/15446798183060.jpg)
-
-> 单词解释
-> 
-> hash： 保存对象的哈希码
-age： 保存对象的分代年龄
-biased_lock： 偏向锁标识位
-lock： 锁状态标识位
-JavaThread*： 保存持有偏向锁的线程ID
-epoch： 保存偏向时间戳
-
-上图中有源码中对锁标志位这样枚举
-
-```c++
-1 enum {   locked_value             = 0,//00 轻量级锁
-2          unlocked_value           = 1,//01 无锁
-3          monitor_value            = 2,//10 监视器锁，也叫膨胀锁，也叫重量级锁
-4          marked_value             = 3,//11 GC标记
-5          biased_lock_pattern      = 5 //101 偏向锁
-6   };
-```
-
-下面是源码注释
-![](media/15446799077974.jpg)
-
-不管是32/64位JVM，都是1bit偏向锁+2bit锁标志位。上面红框是偏向锁（第一行是指向线程的显示偏向锁，第二行是匿名偏向锁）对应枚举biased_lock_pattern，下面红框是轻量级锁、无锁、监视器锁、GC标记，分别对应上面的前4种枚举。我们甚至能看见锁标志11时，是GC的markSweep(标记清除算法)使用的。
-
-对象头中的Mark Word，synchronized源码实现就用了Mark Word来标识对象加锁状态。
 
 ## JVM中synchronized锁实现原理（优化）
 
