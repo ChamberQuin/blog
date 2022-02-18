@@ -138,7 +138,7 @@ Java内存模型中的volatile是基于Memory Barrier实现的：
 * 在写入变量a之前的写入操作，其更新的数据对于其他线程也是可见的。因为Memory Barrier会刷出cache中的所有先前的写入
 
 
-### 放置屏障的例子 // 困= =清醒了再看
+### 放置屏障的例子 // 困= =清醒了再搞
 
 1. volatile
 
