@@ -1,7 +1,63 @@
 [toc]
 
+# 虚拟机结构
+
+1. Class File Format
+2. Data Types
+	* Primitive Data Types
+		* numeric, boolean, returnAddress
+	* Reference Types
+		* class, array, interface
+3. Runtime Data Areas(per jvm, per thread)
+	* pc register
+	* stacks
+	* heap
+	* method area
+	* runtime constant pool
+	* native method stacks
+4. Frames
+	* local variables
+	* operand stacks
+	* dynamic linking
+	* normal method invocation completion
+	* abrupt method invocation completion
+5. Representation of Objects
+6. Floating-Point Arithmetic
+7. Special Methods
+	* Instance Initialization Methods
+	* Class Initialization Methods
+	* Signature Polymorphic Methods
+8. Exceptions
+9. Instruction Set
+	* load and store(aload, astore)
+	* arithmetic(iadd, isub, imul, idiv, irem, ineg, ishl, ishr, ior, iand, ixor, iinc, dcmpg, ...)
+	* type conversion(i2b, ...)
+	* object creation and manipulation(new, newarray, getstatic, getfield, iaload, aaload, iastore, aastore, arraylength, instanceof, checkcase, ...)
+	* operand stack management(pop, dup, swap, ...)
+	* control transfer(ifeq, ifne, iflt, ifle, ifgt, ifge, ifnull, ifnonnull, if_icmpeq, if_icmpne, if_icmplt, if_icmpge, tableswitch, lookupswitch, goto, jsr_w, ret...)
+	* method invocation and return(invokevirtual, invokeinterface, invokespecial, invokestatic, invokedynamic)
+	* throw exception(athrow)
+	* synchronization(monitorenter, monitorexit)
+10. Class Libraries
+	* reflection(java.lang.reflect, Class)
+	* loading and creation of a class or interface(ClassLoader)
+	* linking and initialization of a class or interface(同上)
+	* security(java.security, SecurityManager)
+	* multithreading(Thread)
+	* weak references(java.lang.ref)
+11. Public Design, Private Implementation
+
+# Class 文件结构
+
+![](media/16462027557080.jpg)
+
+工具：javap -v xxx.class, JBE, JClassLib
+
 # 虚拟机执行子系统
 ## 字节码指令
+
+![](media/16461990738953.jpg)
+
 ### 加载和存储指令
 
 将数据在栈帧中的局部变量表和操作数栈间传输
@@ -21,7 +77,7 @@
 ### 运算指令
 
 对两个操作数栈上的值进行运算，并将结果重新存入操作栈顶。
-分为整型数据（byte、shrot、char、boolean）、浮点型数据两类。
+分为整型数据（byte、short、char、boolean）、浮点型数据两类。
 	
 * 加法
 	* iadd, ladd, fadd, dadd
@@ -1250,8 +1306,10 @@ JAVA语言提供`volatile`和`synchronized`关键字来保证线程间操作的�
 # TBC 
 
 
+# References
 
-
+https://docs.oracle.com/javase/specs/index.html
+https://docs.oracle.com/javase/specs/jvms/se17/jvms17.pdf
 
 
 
