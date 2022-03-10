@@ -96,7 +96,7 @@ config get maxmemory-policy
 
 	键空间中移除随机的key
 	
-4. volatile-lru（media status）
+4. volatile-lru（media status, biz info）
 
 	设置了过期时间的键空间中，移除最近最少使用的key
 	
