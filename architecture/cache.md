@@ -86,28 +86,44 @@ config get maxmemory-policy
 
 1. noeviction（playlist item）
 
-	不淘汰，内存不足时写报错
-	
-2. allkeys-lru（file meta）
+	不清理，内存超限时，写报错读正常。
+	适合**数据量不大，作为 DB 存储**的场景。
 
-	键空间中移除最近最少使用的key
-	
-3. allkeys-random
+2. volatile-lru（media status, biz info）
 
-	键空间中移除随机的key
-	
-4. volatile-lru（media status, biz info）
+	从 expire dict 中，随机选择 n 个 key，计算空闲时间，然后插入 eviction pool 中，按 lru 选择淘汰的 key。
+	适合**带过期时间、有冷热区分**的场景。
 
-	设置了过期时间的键空间中，移除最近最少使用的key
+3. volatile-lfu
 	
+	从 expire dict 中，随机选择 n 个 key，根据 value 中的 lru 值，计算 key 在一段时间内的使用频率相对值，选择 lfu 最小的 key。为了沿用 eviction pool 中 idle 概念，Redis 在计算 lfu 的 idle 时，采用 `255 - 使用频率相对值`，确保 idle 最大的 key 是使用频率最小的 key。计算 n 个 key 的 idle 后，插入 eviction pool，淘汰 idle 最大，即使用频率最小的 key。
+	适合**带过期时间、有冷热区分**的场景。
+	
+4. volatile-ttl(piece cache)
+
+	从 expire dict 中，随机选择 n 个 key，计算 `ulong - key 过期时间` 作为 idle，插入 eviction pool，淘汰 idle 最大，即最早过期的key。
+	适合**带过期时间、按时间区分冷热数据**的场景。
+
 5. volatile-random
 
-	设置了过期时间的键空间中，移除随机的key
+	从 expire dict 中，随机选择 1 个 key 淘汰。
+	适合**带过期时间、随机访问**的场景。
 	
-6. volatile-ttl(piece cache)
+6. allkeys-lru（file meta）
 
-	设置了过期时间的键空间中，移除最早过期的key
+	在主 dict 中，使用 lru 算法淘汰，类似 volatile-lru。
+	适合**需要淘汰所有 key，数据有冷热读写区分**的场景。
 
+7. allkeys-lfu
+
+	在主 dict 中，淘汰最近访问频次最小的key。
+	适合**需要淘汰所有key，数据有冷热区分**的场景。
+	
+8. allkeys-random
+
+	从主 dict 中，随机选择 1 个 key 淘汰。
+	适合**需要淘汰所有 key，随机访问**的场景。
+	
 ## 手写 LRU 算法
 
 ![](media/16468182023942.jpg)

@@ -57,7 +57,7 @@
 		* 使用多个selectors
 		* 如果第一个 **read** 返回 *EAGAIN*，则多 **read** 几次
 		
-		Yet we couldn't beat the plain thread per connection model with linux NPTL.？？？
+		> Yet we couldn't beat the plain thread per connection model with linux NPTL.
 		
 		epoll比poll的性能、可扩展性更好。
 		基于epoll的Server的可扩展性比“N连接N线程”更好，但性能差25%。使用epoll可以通过更少的线程达到和NIO一样的性能。

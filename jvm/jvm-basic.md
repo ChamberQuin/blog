@@ -1589,7 +1589,7 @@ JMM围绕着在并发过程中如何处理原子性、可见性和有序性这3�
 
 基本数据类型的访问由原子性变量操作`read, load, assign, use, store, write`保证，例外是long和double的非原子性协定（几乎不会发生）。
 
-更大范围的访问由`lock, unlock`操作满足，虽然JVM没直接开放给用户使用，但提供了高层次的字节码指令`monitorenter, monitorexit`来隐式地使用，反映到Java语言中就是关键字`synchronzed`。
+更大范围的访问由`lock, unlock`操作满足，虽然JVM没直接开放给用户使用，但提供了高层次的字节码指令`monitorenter, monitorexit`来隐式地使用，反映到Java语言中就是关键字`synchronized`。
 
 #### 可见性 Visibility
 

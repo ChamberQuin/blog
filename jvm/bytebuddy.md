@@ -5,15 +5,11 @@
 ## Todos
 
 * [ ] ByteBuddy ElementMatchers
-* [x] JDK synthetic
 * [ ] BootstrapInstrumentBoost
 * [ ] AgentBuilder
-* [x] PluginFinder
 * [ ] JDK Instrumentation
 * [ ] JDK java.lang.Runtime
-* [ ] JDK SPI 机制
 * [ ] JDK java.util.ServiceLoader
-* [x] JDK 类加载器
 * [ ] ByteBuddy TypeDescription
 * [ ] JDK ManagementFactory.getRuntimeMXBean()
 * [ ] JDK URLClassLoader
