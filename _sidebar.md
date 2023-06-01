@@ -29,7 +29,9 @@
         * [UML的正确姿势](knowledge/uml.md)
         * [杂项](knowledge/misc.md)
 * 在该在的地方
-	* [一些系统架构](arch/)
+	* [套路](arch/)
+		* [事务](arch/transaction.md)
+	* [实践](arch/)
 		* [微博如何应对八星出轨](arch/wb-hot.md)
 * 真相只有一个
     * [问题排查](troubleshooting/)

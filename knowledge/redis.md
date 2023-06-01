@@ -12,11 +12,11 @@
 	
 	``` bash
 	[root@10-77-121-227 redis-4.0.8]# ps -p 161771 -T
-   PID   SPID TTY          TIME CMD
-161771 161771 ?        00:00:00 redis-server
-161771 161772 ?        00:00:00 redis-server
-161771 161773 ?        00:00:00 redis-server
-161771 161774 ?        00:00:00 redis-server
+       PID   SPID TTY          TIME CMD
+    161771 161771 ?        00:00:00 redis-server
+    161771 161772 ?        00:00:00 redis-server
+    161771 161773 ?        00:00:00 redis-server
+    161771 161774 ?        00:00:00 redis-server
 	```
 	
 	Redis 4.0 引入多线程处理后台操作，如删除对象等。
