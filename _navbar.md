@@ -1,8 +1,8 @@
 * [Home](/)
-* [Knowledge](/knowledge/)
 * [Network](/network/)
 * [OS](/os/)
+* [Linux](/linux/)
 * [JVM](/jvm/)
+* [Architecture](/arch/)
 * [Troubleshooting](/troubleshooting/)
-
-
+* [Knowledge](/knowledge/)
