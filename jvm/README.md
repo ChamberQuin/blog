@@ -1,5 +1,3 @@
 * [JVM基础](jvm/jvm-basic.md)
 * [字节码](jvm/bytecode.md)
 * [内存模型](jvm/jmm.md)
-* [锁](jvm/lock.md)
-* [Sychronized是怎么工作的?(转)](jvm/synchronized.md)
