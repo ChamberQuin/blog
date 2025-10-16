@@ -1,2 +1,2 @@
-* [ML分享](misc/gpt-share.md)
-* [ML基础](misc/ml-basic.md)
+* [Agent Infra](ai/agent-infra.md)
+* [GPT 初识](ai/gpt-share.md)
