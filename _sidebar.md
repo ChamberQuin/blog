@@ -8,6 +8,7 @@
 * 远征
     * [数据库内核](database/)
 		* [WiredTiger](database/wired-tiger.md)
+		* [分布式事务基础](database/txn-basic.md)
 * 舒适区
     * [业务架构](arch/)
 		* [RPC](arch/rpc.md)
