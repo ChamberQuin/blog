@@ -1,6 +1,6 @@
 * [Home](/)
 * [AI](/ai/)
-* [数据库内核](/database/)
+* [数据库](/database/)
 * [业务架构](/arch/)
 * [Network](/network/)
 * [OS](/os/)

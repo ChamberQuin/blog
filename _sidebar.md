@@ -3,11 +3,13 @@
 * 探索
     * [AI](ai/)
 		* [Agent Infra](ai/agent-infra.md)
+		* [GPU 原理](ai/gpu-basic.md)
 		* [BPE Tokenizer](ai/bpe-tokenizer.md)
 		* [GPT 初识](ai/gpt-share.md)
 * 远征
-    * [数据库内核](database/)
+    * [数据库](database/)
 		* [WiredTiger](database/wired-tiger.md)
+		* [DDIA 学习笔记](database/ddia-notes.md)
 		* [分布式事务基础](database/txn-basic.md)
 * 舒适区
     * [业务架构](arch/)
