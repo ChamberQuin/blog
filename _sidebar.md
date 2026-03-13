@@ -40,3 +40,4 @@
     * [杂项](knowledge/)
         * [DASH调研](knowledge/dash.md)
 		* [LVS](knowledge/lvs.md)
+		* [软件设计的哲学学习笔记](knowledge/philosophy-of-software-design.md)
