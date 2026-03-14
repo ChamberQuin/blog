@@ -5,6 +5,7 @@
 		* [Agent Infra](ai/agent-infra.md)
 		* [GPU 原理](ai/gpu-basic.md)
 		* [BPE Tokenizer](ai/bpe-tokenizer.md)
+		* [LLM 概览](ai/llm-brief.md.md)
 		* [GPT 初识](ai/gpt-share.md)
 * 远征
     * [数据库](database/)
@@ -39,6 +40,7 @@
         * [Java内存模型](jvm/jmm.md)
 		* [锁](jvm/lock.md)
     * [杂项](knowledge/)
+		* [系统理解 SOP](knowledge/system-understanding-sop.md)
+		* [软件设计的哲学学习笔记](knowledge/philosophy-of-software-design.md)
         * [DASH调研](knowledge/dash.md)
 		* [LVS](knowledge/lvs.md)
-		* [软件设计的哲学学习笔记](knowledge/philosophy-of-software-design.md)

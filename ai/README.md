@@ -1,4 +1,5 @@
 * [Agent Infra](ai/agent-infra.md)
 * [GPU 原理](ai/gpu-basic.md)
 * [BPE Tokenizer](ai/bpe-tokenizer.md)
+* [LLM 概览](ai/llm-brief.md.md)
 * [GPT 初识](ai/gpt-share.md)
